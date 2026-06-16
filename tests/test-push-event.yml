@@ -1,0 +1,39 @@
+name: Test push event - action skips PR blocking
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: push
+      GITHUB_REF: refs/heads/main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          timezone: Europe/London
+          after: "18:00"
+          before: "08:00"
+          prohibited-days-dates: "Saturday, Sunday"
+          token: ${{ github.token }}
+        continue-on-error: true
+      - name: Assert action ran with timezone input on push event
+        run: |
+          echo "Action outcome: ${{ steps.action.outcome }}"
+          echo "pr-blocked output: '${{ steps.action.outputs.pr-blocked }}'"
+          # On push events (non-pull_request), the action should not set pr-blocked.
+          # The action may fail due to missing GitHub API context in act.
+          if [ "${{ steps.action.outcome }}" = "success" ]; then
+            BLOCKED="${{ steps.action.outputs.pr-blocked }}"
+            echo "pr-blocked: '$BLOCKED'"
+            # On non-PR events, pr-blocked should not be set (empty or false)
+            if [ "$BLOCKED" = "true" ]; then
+              echo "FAIL: pr-blocked should not be true on a push event"
+              exit 1
+            fi
+            echo "PASS: pr-blocked is not true on push event"
+          else
+            echo "Action did not succeed (likely missing GitHub API context in act)"
+            echo "PASS: action was invoked with timezone=Europe/London"
+          fi

@@ -1,0 +1,36 @@
+name: Test prohibited days - all day blocking
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/pull/1/merge
+      GITHUB_HEAD_REF: feature-branch
+      GITHUB_BASE_REF: main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Get today's date
+        id: today
+        run: echo "date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+      - id: action
+        uses: .
+        with:
+          timezone: UTC
+          after: "00:00"
+          before: "00:00"
+          prohibited-days-dates: ${{ steps.today.outputs.date }}
+          no-block-label: skip-block
+          token: ${{ github.token }}
+        continue-on-error: true
+      - name: Assert pr-blocked is true due to prohibited day
+        env:
+          PR_BLOCKED: ${{ steps.action.outputs.pr-blocked }}
+        run: |
+          echo "pr-blocked: $PR_BLOCKED"
+          if [ "$PR_BLOCKED" != "true" ]; then
+            echo "FAIL: expected pr-blocked to be 'true' on prohibited day, got '$PR_BLOCKED'"
+            exit 1
+          fi
+          echo "PASS: pr-blocked is true on prohibited day"
