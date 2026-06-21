@@ -1,0 +1,34 @@
+{
+  "name": "block-merge-based-on-time",
+  "version": "5.0.21",
+  "description": "You can prevent your members from merging pull requests during the specified time.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "ncc build src/main.ts",
+    "fetch-holidays": "ts-node src/fetch-holidays.ts",
+    "check": "biome check .",
+    "fmt": "biome format --write .",
+    "fmt:check": "biome format .",
+    "lint": "biome lint .",
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "Yutaka Kamei",
+  "license": "MIT",
+  "dependencies": {
+    "@actions/core": "^3.0.1",
+    "@actions/github": "^9.1.1",
+    "luxon": "^3.7.2"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.0",
+    "@types/jest": "^30.0.0",
+    "@types/luxon": "^3.7.1",
+    "@types/node": "^25.9.3",
+    "@vercel/ncc": "^0.44.0",
+    "jest": "^30.4.2",
+    "ts-jest": "^29.4.11",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
+  }
+}
