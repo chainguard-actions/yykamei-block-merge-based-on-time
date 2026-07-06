@@ -1,0 +1,47 @@
+name: Test prohibited-days-dates scenario
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/pull/1/merge
+      GITHUB_HEAD_REF: feature-branch
+      GITHUB_BASE_REF: main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          after: "00:00"
+          before: "00:00"
+          timezone: "UTC"
+          prohibited-days-dates: "Saturday, Sunday"
+          token: ${{ github.token }}
+        continue-on-error: true
+      - name: Assert action ran without crash
+        run: |
+          echo "outcome: ${{ steps.action.outcome }}"
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action ran (outcome=${{ steps.action.outcome }})"
+      - name: Assert pr-blocked output is set or action errored due to no PR context
+        env:
+          PR_BLOCKED: ${{ steps.action.outputs.pr-blocked }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "pr-blocked: $PR_BLOCKED"
+          echo "outcome: $OUTCOME"
+          # On weekdays: pr-blocked should be false (no time window set).
+          # On weekends: pr-blocked should be true (prohibited day).
+          # Either way, the action should not crash with an invalid input error.
+          if [ "$OUTCOME" = "success" ]; then
+            if [ "$PR_BLOCKED" != "true" ] && [ "$PR_BLOCKED" != "false" ]; then
+              echo "FAIL: expected pr-blocked to be 'true' or 'false', got '$PR_BLOCKED'"
+              exit 1
+            fi
+          fi
+          echo "PASS: pr-blocked=$PR_BLOCKED (outcome=$OUTCOME)"

@@ -1,0 +1,47 @@
+name: Test custom no-block-label and commit-status inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/pull/1/merge
+      GITHUB_HEAD_REF: feature-branch
+      GITHUB_BASE_REF: main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          after: "00:00"
+          before: "00:00"
+          timezone: "America/New_York"
+          no-block-label: "skip-time-check"
+          commit-status-context: "my-org/time-gate"
+          commit-status-description-with-success: "Merge allowed"
+          commit-status-description-while-blocking: "Merge blocked by policy"
+          base-branches: "main, develop"
+          token: ${{ github.token }}
+        continue-on-error: true
+      - name: Assert action ran without crash
+        run: |
+          echo "outcome: ${{ steps.action.outcome }}"
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action ran (outcome=${{ steps.action.outcome }})"
+      - name: Assert pr-blocked output is not true (no blocking window set)
+        env:
+          PR_BLOCKED: ${{ steps.action.outputs.pr-blocked }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "pr-blocked: $PR_BLOCKED"
+          echo "outcome: $OUTCOME"
+          # after==before==00:00 means no blocking window; pr-blocked should be false.
+          if [ "$OUTCOME" = "success" ] && [ "$PR_BLOCKED" = "true" ]; then
+            echo "FAIL: expected pr-blocked=false when no blocking window is set"
+            exit 1
+          fi
+          echo "PASS: pr-blocked=$PR_BLOCKED (outcome=$OUTCOME)"

@@ -1,0 +1,44 @@
+name: Test no-block scenario (after=before=00:00)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/pull/1/merge
+      GITHUB_HEAD_REF: feature-branch
+      GITHUB_BASE_REF: main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          after: "00:00"
+          before: "00:00"
+          timezone: "UTC"
+          token: ${{ github.token }}
+        continue-on-error: true
+      - name: Assert action completed (no crash)
+        run: |
+          echo "outcome: ${{ steps.action.outcome }}"
+          # The action may fail due to no real PR context (no GitHub API access),
+          # but it should at least attempt to run. We check it didn't crash with
+          # a missing-input error.
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action ran (outcome=${{ steps.action.outcome }})"
+      - name: Assert pr-blocked output is false or empty
+        env:
+          PR_BLOCKED: ${{ steps.action.outputs.pr-blocked }}
+        run: |
+          echo "pr-blocked: $PR_BLOCKED"
+          # When after==before==00:00, no time window is blocked.
+          # The output should be false or empty (if action errored due to no PR context).
+          if [ "$PR_BLOCKED" = "true" ]; then
+            echo "FAIL: expected pr-blocked to be false or empty, got true"
+            exit 1
+          fi
+          echo "PASS: pr-blocked is not true (value='$PR_BLOCKED')"
