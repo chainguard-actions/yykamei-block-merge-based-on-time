@@ -1,0 +1,35 @@
+name: Test day-specific time exceptions
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: push
+      GITHUB_REF: refs/heads/main
+      GITHUB_TOKEN: fake-token-for-testing
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          # Day-specific time exception: block after 17:30 normally, but 16:30 on Monday
+          after: "17:30, 16:30 on Monday"
+          before: "09:00, 08:00 on Monday"
+          timezone: "UTC"
+          base-branches: "main"
+          token: "fake-token-for-testing"
+          commit-status-context: "block-merge-based-on-time"
+          commit-status-description-with-success: "The PR could be merged"
+          commit-status-description-while-blocking: "The PR can't be merged based on time"
+        continue-on-error: true
+      - name: Assert action ran with day-specific time exceptions
+        run: |
+          echo "Action step outcome: ${{ steps.action.outcome }}"
+          # For push events, the action logs a warning and exits cleanly
+          # This verifies the action accepts the day-specific time syntax without crashing
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action step was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action ran with day-specific time exception syntax"

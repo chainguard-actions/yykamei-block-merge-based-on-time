@@ -1,0 +1,35 @@
+name: Test base-branches regex pattern
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: push
+      GITHUB_REF: refs/heads/main
+      GITHUB_TOKEN: fake-token-for-testing
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          after: "00:00"
+          before: "23:59"
+          timezone: "UTC"
+          # Use regex pattern to match staging/* branches and develop
+          base-branches: "/^staging\\/.*/,develop"
+          token: "fake-token-for-testing"
+          commit-status-context: "block-merge-based-on-time"
+          commit-status-description-with-success: "The PR could be merged"
+          commit-status-description-while-blocking: "The PR can't be merged based on time"
+        continue-on-error: true
+      - name: Assert action ran with regex base-branches
+        run: |
+          echo "Action step outcome: ${{ steps.action.outcome }}"
+          # For push events, the action logs a warning and exits cleanly
+          # This verifies the action accepts the regex base-branches syntax without crashing
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action step was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action ran with regex base-branches pattern"

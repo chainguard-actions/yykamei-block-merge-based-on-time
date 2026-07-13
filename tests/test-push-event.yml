@@ -1,0 +1,35 @@
+name: Test push event - no blocking
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: push
+      GITHUB_REF: refs/heads/main
+      GITHUB_TOKEN: fake-token-for-testing
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          after: "00:00"
+          before: "23:59"
+          timezone: "UTC"
+          base-branches: "main"
+          token: "fake-token-for-testing"
+          commit-status-context: "block-merge-based-on-time"
+        continue-on-error: true
+      - name: Assert pr-blocked is not set for push event
+        env:
+          PR_BLOCKED: ${{ steps.action.outputs.pr-blocked }}
+        run: |
+          echo "pr-blocked: $PR_BLOCKED"
+          echo "Action step outcome: ${{ steps.action.outcome }}"
+          # For push events, the action logs a warning and exits without setting pr-blocked
+          # pr-blocked should be empty (not set)
+          if [ "$PR_BLOCKED" = "true" ]; then
+            echo "FAIL: pr-blocked should not be true for push events"
+            exit 1
+          fi
+          echo "PASS: pr-blocked is not true for push event (value: '$PR_BLOCKED')"
