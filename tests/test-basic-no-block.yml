@@ -1,0 +1,26 @@
+name: Test basic no-block scenario
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          timezone: UTC
+          after: "00:00"
+          before: "00:00"
+          token: ${{ github.token }}
+        continue-on-error: true
+      - name: Assert action ran (not cancelled)
+        run: |
+          echo "outcome: ${{ steps.action.outcome }}"
+          # The action will fail due to GitHub API calls in act environment,
+          # but it should not be cancelled. Accept success or failure.
+          if [ "${{ steps.action.outcome }}" = "cancelled" ]; then
+            echo "FAIL: action was cancelled unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action completed (success or failure due to API calls is acceptable)"

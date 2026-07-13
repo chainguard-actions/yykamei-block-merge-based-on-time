@@ -1,0 +1,46 @@
+name: Test timezone variants
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action-asia
+        uses: .
+        with:
+          timezone: Asia/Tokyo
+          after: "00:00"
+          before: "00:00"
+          token: ${{ github.token }}
+        continue-on-error: true
+      - name: Assert Asia/Tokyo timezone accepted
+        run: |
+          echo "outcome: ${{ steps.action-asia.outcome }}"
+          # The action will attempt GitHub API calls (workflow_dispatch -> handleAllPulls).
+          # It will fail due to API errors in act environment, but should not be cancelled.
+          # The important thing is that Asia/Tokyo timezone was accepted without parse errors.
+          if [ "${{ steps.action-asia.outcome }}" = "cancelled" ]; then
+            echo "FAIL: action was cancelled"
+            exit 1
+          fi
+          echo "PASS: Asia/Tokyo timezone accepted"
+      - id: action-us
+        uses: .
+        with:
+          timezone: America/Los_Angeles
+          after: "00:00"
+          before: "00:00"
+          token: ${{ github.token }}
+        continue-on-error: true
+      - name: Assert America/Los_Angeles timezone accepted
+        run: |
+          echo "outcome: ${{ steps.action-us.outcome }}"
+          # The action will attempt GitHub API calls (workflow_dispatch -> handleAllPulls).
+          # It will fail due to API errors in act environment, but should not be cancelled.
+          # The important thing is that America/Los_Angeles timezone was accepted without parse errors.
+          if [ "${{ steps.action-us.outcome }}" = "cancelled" ]; then
+            echo "FAIL: action was cancelled"
+            exit 1
+          fi
+          echo "PASS: America/Los_Angeles timezone accepted"

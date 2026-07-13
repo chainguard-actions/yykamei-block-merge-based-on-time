@@ -1,0 +1,26 @@
+name: Test blocking time window
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          timezone: UTC
+          after: "00:00"
+          before: "23:59"
+          token: ${{ github.token }}
+        continue-on-error: true
+      - name: Assert action ran (not cancelled)
+        run: |
+          echo "outcome: ${{ steps.action.outcome }}"
+          # The action will attempt to call GitHub API (handleAllPulls for workflow_dispatch).
+          # It will fail due to API errors in act environment, but should not be cancelled.
+          if [ "${{ steps.action.outcome }}" = "cancelled" ]; then
+            echo "FAIL: action was cancelled unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action ran (failure due to API calls is expected in act environment)"

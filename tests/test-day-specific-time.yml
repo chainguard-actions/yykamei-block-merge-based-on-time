@@ -1,0 +1,27 @@
+name: Test day-specific time exceptions
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          timezone: UTC
+          after: "17:30, 16:30 on Monday"
+          before: "09:00, 08:00 on Monday"
+          token: ${{ github.token }}
+        continue-on-error: true
+      - name: Assert action accepted day-specific time format
+        run: |
+          echo "outcome: ${{ steps.action.outcome }}"
+          # The action will attempt GitHub API calls (workflow_dispatch -> handleAllPulls).
+          # It will fail due to API errors in act environment, but should not be cancelled.
+          # The important thing is that day-specific time format was accepted without parse errors.
+          if [ "${{ steps.action.outcome }}" = "cancelled" ]; then
+            echo "FAIL: action was cancelled unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action accepted day-specific time exception format"

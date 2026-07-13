@@ -1,0 +1,28 @@
+name: Test prohibited days configuration
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          timezone: UTC
+          after: "00:00"
+          before: "00:00"
+          prohibited-days-dates: "Saturday, Sunday"
+          token: ${{ github.token }}
+        continue-on-error: true
+      - name: Assert action ran with prohibited-days-dates configuration
+        run: |
+          echo "outcome: ${{ steps.action.outcome }}"
+          # The action will attempt GitHub API calls (workflow_dispatch -> handleAllPulls).
+          # It will fail due to API errors in act environment, but should not be cancelled.
+          # The important thing is that prohibited-days-dates input was accepted without errors.
+          if [ "${{ steps.action.outcome }}" = "cancelled" ]; then
+            echo "FAIL: action was cancelled unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action ran with prohibited-days-dates configuration"

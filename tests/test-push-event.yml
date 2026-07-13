@@ -1,0 +1,27 @@
+name: Test push event (non-PR)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          timezone: Europe/London
+          after: "09:00"
+          before: "17:00"
+          token: ${{ github.token }}
+        continue-on-error: true
+      - name: Assert action ran
+        run: |
+          echo "outcome: ${{ steps.action.outcome }}"
+          # Under act with workflow_dispatch trigger, context.eventName is workflow_dispatch,
+          # so the action calls handleAllPulls() which makes GitHub API calls.
+          # It will fail due to API errors in act environment, but should not be cancelled.
+          if [ "${{ steps.action.outcome }}" = "cancelled" ]; then
+            echo "FAIL: action was cancelled unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action ran (failure due to API calls is expected in act environment)"

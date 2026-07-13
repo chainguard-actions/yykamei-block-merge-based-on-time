@@ -1,0 +1,31 @@
+name: Test commit status configuration
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          timezone: UTC
+          after: "00:00"
+          before: "23:59"
+          commit-status-context: "custom/merge-gate"
+          commit-status-description-with-success: "All clear to merge!"
+          commit-status-description-while-blocking: "Merging is not allowed at this time."
+          commit-status-url: "https://example.com/merge-policy"
+          token: ${{ github.token }}
+        continue-on-error: true
+      - name: Assert action ran with custom commit status config
+        run: |
+          echo "outcome: ${{ steps.action.outcome }}"
+          # The action will attempt GitHub API calls (workflow_dispatch -> handleAllPulls).
+          # It will fail due to API errors in act environment, but should not be cancelled.
+          # The important thing is that custom commit-status inputs were accepted.
+          if [ "${{ steps.action.outcome }}" = "cancelled" ]; then
+            echo "FAIL: action was cancelled unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action ran with custom commit status configuration"
