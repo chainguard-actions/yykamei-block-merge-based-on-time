@@ -13,13 +13,13 @@ jobs:
       pull-requests: read
       statuses: write
     steps:
-      - uses: yykamei/block-merge-based-on-time@ac8c38e9fafa44ff9fba910bb3189242d77e00bf # main
+      - uses: yykamei/block-merge-based-on-time@6f9af9cb2267234702a351ac04edb35abc4fb9c8 # main
         id: block
         with:
           timezone: Asia/Tokyo
           after: 03:00
           before: 04:00
-      - run: echo "pr-blocked=$PR_BLOCKED"
-        if: github.event_name == 'pull_request'
-        env:
+      - env:
           PR_BLOCKED: ${{ steps.block.outputs.pr-blocked }}
+        run: echo "pr-blocked=$PR_BLOCKED"
+        if: github.event_name == 'pull_request'

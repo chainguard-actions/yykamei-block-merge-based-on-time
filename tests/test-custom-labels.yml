@@ -1,4 +1,4 @@
-name: Test blocking time window
+name: Test custom labels and commit status descriptions
 on:
   workflow_dispatch:
 jobs:
@@ -9,11 +9,15 @@ jobs:
       - id: action
         uses: .
         with:
-          timezone: UTC
-          after: "00:00"
-          before: "23:59"
-          commit-status-context: block-merge-test
-          commit-status-description-while-blocking: "Merging is blocked by policy"
+          timezone: America/New_York
+          after: "18:00"
+          before: "09:00"
+          no-block-label: "emergency-merge"
+          commit-status-context: "merge-policy"
+          commit-status-description-with-success: "Merge is allowed at this time"
+          commit-status-description-while-blocking: "Merge is blocked outside business hours"
+          commit-status-url: "https://example.com/merge-policy"
+          base-branches: "main, develop"
         continue-on-error: true
       - name: Assert action completed
         env:

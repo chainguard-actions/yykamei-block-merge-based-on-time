@@ -1,4 +1,4 @@
-name: Test blocking time window
+name: Test basic usage (no blocking)
 on:
   workflow_dispatch:
 jobs:
@@ -11,17 +11,16 @@ jobs:
         with:
           timezone: UTC
           after: "00:00"
-          before: "23:59"
-          commit-status-context: block-merge-test
-          commit-status-description-while-blocking: "Merging is blocked by policy"
+          before: "00:00"
         continue-on-error: true
-      - name: Assert action completed
+      - name: Assert action ran without unexpected failure
         env:
           OUTCOME: ${{ steps.action.outcome }}
         run: |
           echo "outcome: $OUTCOME"
-          # The action may fail due to no real PR context under workflow_dispatch,
+          # The action may fail with a non-PR event context (no PR number),
           # but it should not crash with an unhandled exception.
+          # Accept both success and failure (API call may fail without a real PR).
           if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
             echo "PASS: action completed (outcome=$OUTCOME)"
           else
