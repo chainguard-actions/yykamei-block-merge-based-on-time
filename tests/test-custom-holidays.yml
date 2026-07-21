@@ -1,36 +1,33 @@
-name: Test custom holidays path
+name: Test - Custom Holidays File
 on:
   workflow_dispatch:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_EVENT_NAME: push
-      GITHUB_REF: refs/heads/main
-      GITHUB_TOKEN: fake-token-for-testing
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Use a custom holidays JSON file with a test region.
+      # The action should load the file and use it for prohibited-days-dates.
+      # continue-on-error because the action may fail if open PRs have old commits.
       - id: action
         uses: .
+        continue-on-error: true
         with:
+          timezone: UTC
           after: "00:00"
           before: "00:00"
-          timezone: "UTC"
-          base-branches: "main"
-          prohibited-days-dates: "H:test-region"
+          prohibited-days-dates: "H:TestRegion"
           custom-holidays-path: "${{ github.workspace }}/tests/fixtures/custom-holidays.json"
-          token: "fake-token-for-testing"
-          commit-status-context: "block-merge-based-on-time"
-          commit-status-description-with-success: "The PR could be merged"
-          commit-status-description-while-blocking: "The PR can't be merged based on time"
-        continue-on-error: true
-      - name: Assert action ran with custom holidays
+          commit-status-context: block-merge-based-on-time-test-custom-holidays
+
+      - name: Assert action ran (not skipped due to config error)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
         run: |
-          echo "Action step outcome: ${{ steps.action.outcome }}"
-          # For push events, the action logs a warning and exits cleanly
-          # This verifies the action accepts the custom-holidays-path input without crashing
-          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
-            echo "FAIL: action step was skipped unexpectedly"
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
             exit 1
           fi
-          echo "PASS: action ran with custom-holidays-path configuration"
+          echo "PASS: action ran with outcome: $OUTCOME"
