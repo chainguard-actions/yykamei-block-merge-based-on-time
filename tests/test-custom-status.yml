@@ -1,4 +1,4 @@
-name: Test prohibited days configuration
+name: Test custom commit status context and descriptions
 on:
   workflow_dispatch:
 jobs:
@@ -10,16 +10,19 @@ jobs:
       pull-requests: read
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Run action with all weekdays prohibited
+      - name: Run action with custom commit status settings
         id: action
         uses: .
         continue-on-error: true
         with:
-          timezone: Europe/London
+          timezone: America/New_York
           after: "12:00"
           before: "12:00"
-          prohibited-days-dates: "Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday"
-          commit-status-context: block-merge-based-on-time-test-prohibited
+          commit-status-context: my-custom-block-context
+          commit-status-description-with-success: "Merging is allowed now"
+          commit-status-description-while-blocking: "Merging is not allowed at this time"
+          commit-status-url: "https://example.com/policy"
+          no-block-label: "skip-time-check"
       - name: Assert action ran
         env:
           OUTCOME: ${{ steps.action.outcome }}

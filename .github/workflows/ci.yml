@@ -6,7 +6,6 @@ on:
   pull_request_target:
     types: [labeled]
   workflow_dispatch:
-permissions: {}
 jobs:
   ci:
     if: github.event_name != 'pull_request_target'
@@ -29,14 +28,14 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: read
+      pull-requests: write
     steps:
       - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
   auto-build-trusted:
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     steps:
       - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         id: app-token

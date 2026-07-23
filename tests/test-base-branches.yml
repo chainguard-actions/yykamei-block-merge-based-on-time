@@ -1,4 +1,4 @@
-name: Test prohibited days configuration
+name: Test base-branches filtering
 on:
   workflow_dispatch:
 jobs:
@@ -10,16 +10,16 @@ jobs:
       pull-requests: read
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Run action with all weekdays prohibited
+      - name: Run action with specific base-branches filter
         id: action
         uses: .
         continue-on-error: true
         with:
-          timezone: Europe/London
+          timezone: Asia/Tokyo
           after: "12:00"
           before: "12:00"
-          prohibited-days-dates: "Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday"
-          commit-status-context: block-merge-based-on-time-test-prohibited
+          base-branches: "main, develop, /^release\\/.*/,"
+          commit-status-context: block-merge-based-on-time-test-branches
       - name: Assert action ran
         env:
           OUTCOME: ${{ steps.action.outcome }}

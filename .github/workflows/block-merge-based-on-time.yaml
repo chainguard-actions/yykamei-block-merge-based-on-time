@@ -13,7 +13,7 @@ jobs:
       pull-requests: read
       statuses: write
     steps:
-      - uses: yykamei/block-merge-based-on-time@7bc5ebaff2a92272109ab654a0425d0a1b7e6b54 # main
+      - uses: yykamei/block-merge-based-on-time@9457d7741e55ec4c3ad76085251c8868eea29b23 # main
         id: block
         with:
           timezone: Asia/Tokyo

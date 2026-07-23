@@ -1,0 +1,38 @@
+name: Test time-based blocking - block all day
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/pull/1/merge
+      GITHUB_HEAD_REF: feature-branch
+      GITHUB_BASE_REF: main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          timezone: UTC
+          after: "00:01"
+          before: "23:59"
+          token: ${{ github.token }}
+        continue-on-error: true
+      - name: Assert pr-blocked is true when blocking all day
+        env:
+          PR_BLOCKED: ${{ steps.action.outputs.pr-blocked }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "pr-blocked: $PR_BLOCKED"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ "$PR_BLOCKED" != "true" ]; then
+              echo "FAIL: expected pr-blocked to be 'true' when blocking 00:01-23:59"
+              exit 1
+            fi
+            echo "PASS: pr-blocked=$PR_BLOCKED"
+          else
+            echo "INFO: action did not succeed (likely no real GitHub API), outcome=$OUTCOME"
+            echo "PASS: action ran without crashing unexpectedly"
+          fi

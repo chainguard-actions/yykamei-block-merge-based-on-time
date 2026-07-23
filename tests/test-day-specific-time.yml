@@ -1,4 +1,4 @@
-name: Test prohibited days configuration
+name: Test day-specific time overrides
 on:
   workflow_dispatch:
 jobs:
@@ -10,16 +10,15 @@ jobs:
       pull-requests: read
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Run action with all weekdays prohibited
+      - name: Run action with day-specific time overrides
         id: action
         uses: .
         continue-on-error: true
         with:
-          timezone: Europe/London
-          after: "12:00"
-          before: "12:00"
-          prohibited-days-dates: "Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday"
-          commit-status-context: block-merge-based-on-time-test-prohibited
+          timezone: UTC
+          after: "09:00, 08:00 on Monday"
+          before: "05:00, 04:00 on Monday"
+          commit-status-context: block-merge-based-on-time-test-day-specific
       - name: Assert action ran
         env:
           OUTCOME: ${{ steps.action.outcome }}

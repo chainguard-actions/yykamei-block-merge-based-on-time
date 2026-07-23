@@ -1,4 +1,4 @@
-name: Test prohibited days configuration
+name: Test basic usage - no blocking window
 on:
   workflow_dispatch:
 jobs:
@@ -10,16 +10,15 @@ jobs:
       pull-requests: read
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Run action with all weekdays prohibited
+      - name: Run action with UTC timezone and no blocking window
         id: action
         uses: .
         continue-on-error: true
         with:
-          timezone: Europe/London
+          timezone: UTC
           after: "12:00"
           before: "12:00"
-          prohibited-days-dates: "Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday"
-          commit-status-context: block-merge-based-on-time-test-prohibited
+          commit-status-context: block-merge-based-on-time-test-basic
       - name: Assert action ran
         env:
           OUTCOME: ${{ steps.action.outcome }}
