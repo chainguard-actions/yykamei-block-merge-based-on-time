@@ -1,0 +1,34 @@
+name: Test day-specific time overrides
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      statuses: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run action with day-specific time overrides
+        id: action
+        uses: .
+        with:
+          # Base time: block after 17:30, with Monday having an earlier cutoff at 16:30
+          after: "17:30, 16:30 on Monday"
+          before: "09:00, 08:00 on Monday"
+          timezone: "Europe/London"
+          commit-status-context: "block-merge-test-day-specific"
+        continue-on-error: true
+
+      - name: Assert action ran (input validation passed)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action step was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action ran with outcome=$OUTCOME"

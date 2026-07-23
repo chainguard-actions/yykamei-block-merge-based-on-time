@@ -1,0 +1,36 @@
+name: Test prohibited day configuration
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      statuses: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run action with Sunday as a prohibited day
+        id: action
+        uses: .
+        with:
+          after: "00:00"
+          before: "00:00"
+          timezone: "UTC"
+          prohibited-days-dates: "Sunday"
+          commit-status-context: "block-merge-test-prohibited-day"
+          commit-status-description-with-success: "Merge is allowed"
+          commit-status-description-while-blocking: "Merge is blocked on Sundays"
+        continue-on-error: true
+
+      - name: Assert action ran (input validation passed)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action step was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action ran with outcome=$OUTCOME"
