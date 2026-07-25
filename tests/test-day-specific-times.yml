@@ -1,4 +1,4 @@
-name: Test prohibited days (all days blocked)
+name: Test day-specific time overrides
 on:
   workflow_dispatch:
 jobs:
@@ -6,14 +6,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Run action with all days prohibited
+      - name: Run action with day-specific time overrides
         id: action
         uses: .
         with:
-          timezone: UTC
-          prohibited-days-dates: "Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday"
+          timezone: Europe/London
+          after: "17:30, 16:30 on Monday, 16:00 on Friday"
+          before: "09:00, 08:00 on Monday, 08:30 on Friday"
+          commit-status-context: block-merge-based-on-time-dayspec-test
         continue-on-error: true
-      - name: Assert action ran even when all days are prohibited
+      - name: Assert action ran with day-specific time overrides
         env:
           OUTCOME: ${{ steps.action.outcome }}
         run: |
@@ -24,4 +26,4 @@ jobs:
             echo "FAIL: action was cancelled unexpectedly"
             exit 1
           fi
-          echo "PASS: action ran with all days prohibited (outcome=$OUTCOME)"
+          echo "PASS: action ran with day-specific time overrides (outcome=$OUTCOME)"

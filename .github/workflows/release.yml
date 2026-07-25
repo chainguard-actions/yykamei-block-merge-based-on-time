@@ -41,8 +41,8 @@ jobs:
             latest=$(gh release view --json tagName --jq .tagName)
             next=$(echo ${latest#v} | awk -F . '{patch = $3; patch++; printf "%d.%d.%d", $1, $2, patch}')
           fi
-          safe=$(printf '%s' "$next" | tr -d '\n\r')
-          echo "next=${safe}" >> "$GITHUB_OUTPUT"
+          safe_next=$(printf '%s' "$next" | tr -d '\n\r')
+          echo "next=${safe_next}" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           INPUT_VERSION: ${{ inputs.version }}

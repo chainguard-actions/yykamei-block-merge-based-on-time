@@ -1,4 +1,4 @@
-name: Test prohibited days (all days blocked)
+name: Test base-branches and no-block-label inputs
 on:
   workflow_dispatch:
 jobs:
@@ -6,14 +6,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Run action with all days prohibited
+      - name: Run action with specific base-branches and custom no-block-label
         id: action
         uses: .
         with:
-          timezone: UTC
-          prohibited-days-dates: "Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday"
+          timezone: America/New_York
+          after: "17:00"
+          before: "09:00"
+          base-branches: "main, develop, /staging\\/.*/, (default)"
+          no-block-label: "skip-block, emergency-merge"
+          commit-status-context: block-merge-based-on-time-branches-test
         continue-on-error: true
-      - name: Assert action ran even when all days are prohibited
+      - name: Assert action ran with custom base-branches and no-block-label
         env:
           OUTCOME: ${{ steps.action.outcome }}
         run: |
@@ -24,4 +28,4 @@ jobs:
             echo "FAIL: action was cancelled unexpectedly"
             exit 1
           fi
-          echo "PASS: action ran with all days prohibited (outcome=$OUTCOME)"
+          echo "PASS: action ran with custom base-branches and no-block-label (outcome=$OUTCOME)"

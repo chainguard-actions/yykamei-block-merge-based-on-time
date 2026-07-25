@@ -1,4 +1,4 @@
-name: Test prohibited days (all days blocked)
+name: Test time-based blocking window
 on:
   workflow_dispatch:
 jobs:
@@ -6,14 +6,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Run action with all days prohibited
+      - name: Run action with a blocking time window covering the whole day
         id: action
         uses: .
         with:
           timezone: UTC
-          prohibited-days-dates: "Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday"
+          after: "00:00"
+          before: "23:59"
+          commit-status-context: block-merge-based-on-time-test
+          commit-status-description-while-blocking: "Blocked by test policy"
         continue-on-error: true
-      - name: Assert action ran even when all days are prohibited
+      - name: Assert action ran during blocking window
         env:
           OUTCOME: ${{ steps.action.outcome }}
         run: |
@@ -24,4 +27,4 @@ jobs:
             echo "FAIL: action was cancelled unexpectedly"
             exit 1
           fi
-          echo "PASS: action ran with all days prohibited (outcome=$OUTCOME)"
+          echo "PASS: action ran during blocking window (outcome=$OUTCOME)"

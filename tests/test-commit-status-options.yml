@@ -1,4 +1,4 @@
-name: Test prohibited days (all days blocked)
+name: Test commit status customization options
 on:
   workflow_dispatch:
 jobs:
@@ -6,14 +6,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Run action with all days prohibited
+      - name: Run action with custom commit status options
         id: action
         uses: .
         with:
-          timezone: UTC
-          prohibited-days-dates: "Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday"
+          timezone: Asia/Tokyo
+          after: "00:00"
+          before: "00:00"
+          commit-status-context: block-merge-based-on-time-custom-test
+          commit-status-description-with-success: "Merge is allowed now"
+          commit-status-description-while-blocking: "Merging is not allowed at this time"
+          commit-status-url: "https://example.com/merge-policy"
         continue-on-error: true
-      - name: Assert action ran even when all days are prohibited
+      - name: Assert action ran with custom commit status options
         env:
           OUTCOME: ${{ steps.action.outcome }}
         run: |
@@ -24,4 +29,4 @@ jobs:
             echo "FAIL: action was cancelled unexpectedly"
             exit 1
           fi
-          echo "PASS: action ran with all days prohibited (outcome=$OUTCOME)"
+          echo "PASS: action ran with custom commit status options (outcome=$OUTCOME)"
