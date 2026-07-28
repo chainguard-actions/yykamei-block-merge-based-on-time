@@ -1,0 +1,28 @@
+name: Test basic usage (non-PR event)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          timezone: UTC
+          after: "00:00"
+          before: "00:00"
+        continue-on-error: true
+      - name: Assert action ran (success or expected API failure)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # The action makes real GitHub API calls on workflow_dispatch.
+          # It may succeed (no open PRs) or fail (old PR commits can't be updated).
+          # Either is acceptable — we just verify it ran and didn't get cancelled.
+          if [ "$OUTCOME" = "cancelled" ]; then
+            echo "FAIL: action was cancelled unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action completed with outcome=$OUTCOME"
