@@ -1,0 +1,25 @@
+name: Block Merge Based on Time
+on:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/30 * * * *"
+
+jobs:
+  block:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      statuses: write
+    steps:
+      - uses: yykamei/block-merge-based-on-time@3b76640d9f6d2496871efd9f702374ad29850be5 # main
+        id: block
+        with:
+          timezone: Asia/Tokyo
+          after: 03:00
+          before: 04:00
+      - env:
+          PR_BLOCKED: ${{ steps.block.outputs.pr-blocked }}
+        run: echo "pr-blocked=$PR_BLOCKED"
+        if: github.event_name == 'pull_request'

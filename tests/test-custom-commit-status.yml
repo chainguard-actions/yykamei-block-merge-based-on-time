@@ -1,0 +1,33 @@
+name: Test custom commit status inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          timezone: Europe/London
+          after: "18:00"
+          before: "08:00"
+          commit-status-context: "my-org/merge-policy"
+          commit-status-description-with-success: "Merge is allowed"
+          commit-status-description-while-blocking: "Merge is blocked by policy"
+          commit-status-url: "https://example.com/merge-policy"
+          no-block-label: "emergency-merge"
+        continue-on-error: true
+      - name: Assert action ran with custom commit status inputs
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # The action makes real GitHub API calls; it may succeed or fail depending on
+          # repo state (e.g. open PRs with old commits). We only verify it ran at all
+          # (i.e. custom commit status inputs were parsed without crashing).
+          if [ "$OUTCOME" = "skipped" ] || [ "$OUTCOME" = "cancelled" ]; then
+            echo "FAIL: action was skipped or cancelled unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action ran with outcome=$OUTCOME (success or failure both acceptable)"

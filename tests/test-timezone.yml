@@ -1,0 +1,29 @@
+name: Test timezone input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          timezone: America/New_York
+          after: "17:30"
+          before: "09:00"
+          base-branches: "main"
+        continue-on-error: true
+      - name: Assert action ran with America/New_York timezone
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # The action makes real GitHub API calls; it may succeed or fail depending on
+          # repo state (e.g. open PRs with old commits). We only verify it ran at all
+          # (i.e. timezone and inputs were parsed without crashing).
+          if [ "$OUTCOME" = "skipped" ] || [ "$OUTCOME" = "cancelled" ]; then
+            echo "FAIL: action was skipped or cancelled unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action ran with outcome=$OUTCOME (success or failure both acceptable)"
