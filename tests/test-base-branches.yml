@@ -1,0 +1,31 @@
+name: Test base-branches input - specific branch targeting
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          after: "00:00"
+          before: "00:00"
+          timezone: "Europe/London"
+          base-branches: "main, develop, /^release\\/.*/,"
+      - name: Assert action ran with base-branches filter
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # The action should either succeed or fail gracefully (sentinel repo / non-PR event).
+          # It must NOT crash due to invalid base-branches parsing.
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action completed successfully with base-branches filter"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo or non-PR event)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

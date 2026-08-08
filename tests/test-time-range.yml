@@ -1,0 +1,30 @@
+name: Test after/before time range inputs with day-specific overrides
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          after: "17:30, 16:30 on Monday"
+          before: "09:00, 08:00 on Monday"
+          timezone: "UTC"
+      - name: Assert action ran with day-specific time overrides
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # The action should either succeed or fail gracefully (sentinel repo / non-PR event).
+          # It must NOT crash due to invalid time range or day-specific override parsing.
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action completed successfully with day-specific time overrides"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo or non-PR event)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

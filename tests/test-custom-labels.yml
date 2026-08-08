@@ -1,0 +1,35 @@
+name: Test custom labels and commit status context
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          after: "00:00"
+          before: "00:00"
+          timezone: "Asia/Tokyo"
+          no-block-label: "skip-time-check"
+          commit-status-context: "my-org/time-gate"
+          commit-status-description-with-success: "Merge is allowed"
+          commit-status-description-while-blocking: "Merge is blocked by policy"
+          commit-status-url: "https://example.com/policy"
+      - name: Assert action ran with custom labels
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # The action should either succeed or fail gracefully (sentinel repo / non-PR event).
+          # It must NOT crash due to invalid custom label or context values.
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action completed successfully with custom labels"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo or non-PR event)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

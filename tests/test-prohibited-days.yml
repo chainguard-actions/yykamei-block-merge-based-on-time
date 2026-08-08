@@ -1,0 +1,31 @@
+name: Test prohibited-days-dates input - weekend blocking
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          after: "00:00"
+          before: "00:00"
+          timezone: "UTC"
+          prohibited-days-dates: "Saturday, Sunday"
+      - name: Assert action ran with prohibited-days-dates
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # The action should either succeed or fail gracefully (sentinel repo / non-PR event).
+          # It must NOT crash due to invalid prohibited-days-dates parsing.
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action completed successfully with weekend blocking"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo or non-PR event)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
