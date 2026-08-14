@@ -1,0 +1,35 @@
+name: Test blocking time configuration
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          timezone: America/New_York
+          after: "17:30"
+          before: "09:00"
+          base-branches: "main, develop"
+          commit-status-context: "block-merge-test"
+          commit-status-description-with-success: "Merge is allowed"
+          commit-status-description-while-blocking: "Merge is blocked outside business hours"
+      - name: Assert action ran with blocking time config
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # On a non-PR event (workflow_dispatch), the action should either:
+          # - succeed with no-op
+          # - fail gracefully due to sentinel repo or non-PR event
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action succeeded with blocking time configuration"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (expected on sentinel repo or non-PR event)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

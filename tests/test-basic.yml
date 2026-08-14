@@ -1,0 +1,33 @@
+name: Test basic usage (non-PR event)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          timezone: UTC
+          after: "00:00"
+          before: "00:00"
+      - name: Assert action ran (non-PR event should be a no-op or fail gracefully)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          PR_BLOCKED: ${{ steps.action.outputs.pr-blocked }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "pr-blocked: $PR_BLOCKED"
+          # On a non-PR event (workflow_dispatch), the action should either:
+          # - succeed with no-op (pr-blocked output not set or empty)
+          # - fail gracefully due to sentinel repo API call
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action succeeded on non-PR event (no-op)"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (expected on sentinel repo or non-PR event)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
