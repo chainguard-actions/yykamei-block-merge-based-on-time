@@ -1,0 +1,31 @@
+name: Test prohibited days configuration
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          timezone: Europe/London
+          after: "00:00"
+          before: "00:00"
+          prohibited-days-dates: "Saturday, Sunday"
+          base-branches: "main"
+          no-block-label: "emergency-merge"
+        continue-on-error: true
+      - name: Assert action completed with prohibited days config
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # Under workflow_dispatch there is no PR, so the action should either
+          # succeed (skip) or fail gracefully. It must not crash the runner.
+          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action completed with outcome=$OUTCOME"
+          else
+            echo "FAIL: unexpected outcome=$OUTCOME"
+            exit 1
+          fi

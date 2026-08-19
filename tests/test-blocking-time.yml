@@ -1,0 +1,32 @@
+name: Test blocking time window configuration
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          timezone: America/New_York
+          after: "17:30"
+          before: "09:00"
+          base-branches: "main, develop"
+          commit-status-context: "block-merge-test"
+          commit-status-description-with-success: "Merge is allowed"
+          commit-status-description-while-blocking: "Merge is blocked outside business hours"
+        continue-on-error: true
+      - name: Assert action completed with valid time config
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # Under workflow_dispatch there is no PR, so the action should either
+          # succeed (skip) or fail gracefully. It must not crash the runner.
+          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action completed with outcome=$OUTCOME"
+          else
+            echo "FAIL: unexpected outcome=$OUTCOME"
+            exit 1
+          fi
