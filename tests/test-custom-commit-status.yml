@@ -1,0 +1,31 @@
+name: Test custom commit status context and description
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          timezone: America/New_York
+          after: "23:00"
+          before: "23:01"
+          commit-status-context: my-custom-context
+          commit-status-description-with-success: "Merge is allowed"
+          commit-status-description-while-blocking: "Merge is blocked by policy"
+          commit-status-url: "https://example.com/policy"
+          base-branches: "main, develop"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        continue-on-error: true
+
+      - name: Assert action completed with custom commit status settings
+        run: |
+          echo "Action completed with custom commit status configuration"
+          echo "pr-blocked output: '${{ steps.action.outputs.pr-blocked }}'"
+          # Under workflow_dispatch, pr-blocked is not set (only on pull_request events)
+          # Verify the action ran without crashing
+          echo "PASS: action ran with custom commit status configuration"

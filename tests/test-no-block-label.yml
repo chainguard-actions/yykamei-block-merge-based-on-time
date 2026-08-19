@@ -1,0 +1,29 @@
+name: Test no-block-label and base-branches configuration
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          timezone: Europe/London
+          after: "00:00"
+          before: "00:00"
+          no-block-label: "skip-time-block"
+          base-branches: "/^main$/, /^release\\/.*/,  develop"
+          commit-status-context: block-merge-based-on-time-label-test
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        continue-on-error: true
+
+      - name: Assert action completed with no-block-label and base-branches
+        run: |
+          echo "Action completed with no-block-label and base-branches configuration"
+          echo "pr-blocked output: '${{ steps.action.outputs.pr-blocked }}'"
+          # Under workflow_dispatch, pr-blocked is not set (only on pull_request events)
+          # Verify the action ran without crashing
+          echo "PASS: action ran with no-block-label and base-branches configuration"

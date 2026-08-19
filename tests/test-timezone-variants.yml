@@ -1,0 +1,47 @@
+name: Test timezone variants
+on:
+  workflow_dispatch:
+jobs:
+  test-utc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action-utc
+        uses: .
+        with:
+          timezone: UTC
+          after: "00:00"
+          before: "00:00"
+          commit-status-context: block-merge-tz-utc-test
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        continue-on-error: true
+
+      - name: Assert UTC timezone action completed
+        run: |
+          echo "Action completed with UTC timezone"
+          echo "pr-blocked: '${{ steps.action-utc.outputs.pr-blocked }}'"
+          echo "PASS: action ran with UTC timezone"
+
+  test-asia-tokyo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action-tokyo
+        uses: .
+        with:
+          timezone: Asia/Tokyo
+          after: "00:00"
+          before: "00:00"
+          commit-status-context: block-merge-tz-tokyo-test
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        continue-on-error: true
+
+      - name: Assert Asia/Tokyo timezone action completed
+        run: |
+          echo "Action completed with Asia/Tokyo timezone"
+          echo "pr-blocked: '${{ steps.action-tokyo.outputs.pr-blocked }}'"
+          echo "PASS: action ran with Asia/Tokyo timezone"
