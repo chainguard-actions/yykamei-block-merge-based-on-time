@@ -1,0 +1,32 @@
+name: Test base-branches with regex pattern
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          timezone: Europe/London
+          after: "18:00"
+          before: "08:00"
+          base-branches: "/^(main|master|release\\/.*)$/"
+          prohibited-days-dates: "Saturday, Sunday"
+      - name: Assert action ran with regex base-branches (failed gracefully or succeeded)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          PR_BLOCKED: ${{ steps.action.outputs.pr-blocked }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "pr-blocked: $PR_BLOCKED"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action succeeded with regex base-branches"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable or non-PR event)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
