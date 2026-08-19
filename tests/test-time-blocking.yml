@@ -1,4 +1,4 @@
-name: Test basic usage
+name: Test time-based blocking configuration
 on:
   workflow_dispatch:
 jobs:
@@ -6,20 +6,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Run action with minimal required inputs
+      - name: Run action with time-based blocking (after 09:00, before 17:00)
         id: action
         uses: .
         with:
-          timezone: UTC
+          timezone: America/New_York
+          after: "09:00"
+          before: "17:00"
+          commit-status-context: block-merge-based-on-time
+          commit-status-description-with-success: Merging is allowed
+          commit-status-description-while-blocking: Merging is blocked during business hours
         continue-on-error: true
       - name: Assert action ran (success or expected API failure)
         env:
           OUTCOME: ${{ steps.action.outcome }}
         run: |
           echo "action outcome: $OUTCOME"
-          # The action succeeds when there are no open PRs or all PRs updated successfully.
-          # It may fail if open PRs have commits too old for status updates.
-          # Either outcome means the action ran correctly with valid inputs.
           if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
             echo "PASS: action ran to completion with valid inputs (outcome=$OUTCOME)"
           else

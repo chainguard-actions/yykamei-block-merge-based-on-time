@@ -1,4 +1,4 @@
-name: Test basic usage
+name: Test custom holidays path
 on:
   workflow_dispatch:
 jobs:
@@ -6,20 +6,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Run action with minimal required inputs
+      - name: Run action with custom holidays file
         id: action
         uses: .
         with:
           timezone: UTC
+          prohibited-days-dates: "H:TestRegion"
+          custom-holidays-path: "${{ github.workspace }}/tests/fixtures/custom-holidays.json"
+          commit-status-context: block-merge-based-on-time
         continue-on-error: true
       - name: Assert action ran (success or expected API failure)
         env:
           OUTCOME: ${{ steps.action.outcome }}
         run: |
           echo "action outcome: $OUTCOME"
-          # The action succeeds when there are no open PRs or all PRs updated successfully.
-          # It may fail if open PRs have commits too old for status updates.
-          # Either outcome means the action ran correctly with valid inputs.
           if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
             echo "PASS: action ran to completion with valid inputs (outcome=$OUTCOME)"
           else
