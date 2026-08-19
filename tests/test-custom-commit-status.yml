@@ -1,4 +1,4 @@
-name: Test prohibited-days-dates input
+name: Test custom commit status inputs
 on:
   workflow_dispatch:
 jobs:
@@ -9,10 +9,13 @@ jobs:
       - id: action
         uses: .
         with:
-          timezone: Asia/Tokyo
+          timezone: America/New_York
           after: "00:00"
           before: "00:00"
-          prohibited-days-dates: "Saturday, Sunday, 2099-01-01"
+          commit-status-context: my-custom-context
+          commit-status-description-with-success: "Merge is allowed"
+          commit-status-description-while-blocking: "Merge is blocked by policy"
+          commit-status-url: "https://example.com/policy"
         continue-on-error: true
       - name: Assert action ran (not cancelled or skipped)
         env:

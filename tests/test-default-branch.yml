@@ -1,4 +1,4 @@
-name: Test prohibited-days-dates input
+name: Test default branch base-branches value
 on:
   workflow_dispatch:
 jobs:
@@ -9,10 +9,10 @@ jobs:
       - id: action
         uses: .
         with:
-          timezone: Asia/Tokyo
+          timezone: UTC
           after: "00:00"
           before: "00:00"
-          prohibited-days-dates: "Saturday, Sunday, 2099-01-01"
+          base-branches: "(default)"
         continue-on-error: true
       - name: Assert action ran (not cancelled or skipped)
         env:

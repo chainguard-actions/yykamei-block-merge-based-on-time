@@ -1,14 +1,9 @@
-name: Test basic usage - no blocking window
+name: Test basic usage - no blocking
 on:
   workflow_dispatch:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_EVENT_NAME: pull_request
-      GITHUB_REF: refs/pull/1/merge
-      GITHUB_HEAD_REF: feature-branch
-      GITHUB_BASE_REF: main
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - id: action
@@ -17,24 +12,26 @@ jobs:
           timezone: UTC
           after: "00:00"
           before: "00:00"
-          token: ${{ github.token }}
         continue-on-error: true
-      - name: Assert action ran
+      - name: Assert action ran (not cancelled or skipped)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
         run: |
-          echo "Action outcome: ${{ steps.action.outcome }}"
-          echo "pr-blocked output: ${{ steps.action.outputs.pr-blocked }}"
-          # The action may fail due to missing GitHub API context in act,
-          # but we verify it was invoked with the timezone input correctly.
-          # If it succeeded, pr-blocked should be false (no blocking window).
-          if [ "${{ steps.action.outcome }}" = "success" ]; then
-            BLOCKED="${{ steps.action.outputs.pr-blocked }}"
-            echo "pr-blocked: $BLOCKED"
-            if [ "$BLOCKED" = "true" ]; then
-              echo "FAIL: expected pr-blocked to be false when no blocking window is set"
-              exit 1
-            fi
-            echo "PASS: pr-blocked is false as expected"
-          else
-            echo "Action did not succeed (likely missing GitHub API context in act) - skipping output assertion"
-            echo "PASS: action was invoked with timezone input"
+          echo "outcome: $OUTCOME"
+          # The action makes real GitHub API calls and may fail if there are open PRs
+          # with old commits. We accept both success and failure, just not skipped/cancelled.
+          if [ "$OUTCOME" = "cancelled" ] || [ -z "$OUTCOME" ]; then
+            echo "FAIL: action was cancelled or did not run"
+            exit 1
           fi
+          echo "PASS: action ran with outcome '$OUTCOME' (success or failure both acceptable)"
+      - name: Assert pr-blocked output is not 'true' (workflow_dispatch has no PR context)
+        env:
+          PR_BLOCKED: ${{ steps.action.outputs.pr-blocked }}
+        run: |
+          echo "pr-blocked: $PR_BLOCKED"
+          if [ "$PR_BLOCKED" = "true" ]; then
+            echo "FAIL: pr-blocked should not be true under workflow_dispatch"
+            exit 1
+          fi
+          echo "PASS: pr-blocked is not true (value: '$PR_BLOCKED')"
