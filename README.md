@@ -23,6 +23,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | v5.0.30 | [`v5.0.30`](https://github.com/chainguard-actions/yykamei-block-merge-based-on-time/tree/v5.0.30) | [`2453849`](https://github.com/yykamei/block-merge-based-on-time/commit/2453849e8fc55d0cbef5a31081caf0d2c3fa37f2) |
 | v5.0.31 | [`v5.0.31`](https://github.com/chainguard-actions/yykamei-block-merge-based-on-time/tree/v5.0.31) | [`d30f6aa`](https://github.com/yykamei/block-merge-based-on-time/commit/d30f6aa2e81e0424015527887d32de44e7274b38) |
 | v5.0.32 | [`v5.0.32`](https://github.com/chainguard-actions/yykamei-block-merge-based-on-time/tree/v5.0.32) | [`e48448b`](https://github.com/yykamei/block-merge-based-on-time/commit/e48448b3a1ec260265f4f38d240e7ecec2357c06) |
+| v5.0.33 | [`v5.0.33`](https://github.com/chainguard-actions/yykamei-block-merge-based-on-time/tree/v5.0.33) | [`323a1a9`](https://github.com/yykamei/block-merge-based-on-time/commit/323a1a93fa63cb187a0e87ec7ce178ce372091f7) |
 | v5.0.34 | [`v5.0.34`](https://github.com/chainguard-actions/yykamei-block-merge-based-on-time/tree/v5.0.34) | [`05653dc`](https://github.com/yykamei/block-merge-based-on-time/commit/05653dc8500f28d8079d59d7c7c41b868e37a8dc) |
 
 ## Privacy
