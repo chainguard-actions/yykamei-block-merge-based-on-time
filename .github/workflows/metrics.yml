@@ -1,0 +1,16 @@
+name: GitHub Workflows Metrics
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 8 * * *"
+permissions:
+  actions: read
+  issues: write
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: yykamei/github-workflows-metrics@4ff4a6bba410696d7d450c7b7e4f5eea367a0514 # main
+        with:
+          status: "success"
+          aggregate: average
