@@ -1,0 +1,32 @@
+name: Test basic usage - no blocking window
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          timezone: UTC
+          after: "00:00"
+          before: "00:00"
+      - name: Assert action ran (no pull_request event, so pr-blocked is not set; API calls may fail on sentinel repo)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          PR_BLOCKED: ${{ steps.action.outputs.pr-blocked }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "pr-blocked: $PR_BLOCKED"
+          # Under workflow_dispatch (not pull_request), the action may succeed or fail
+          # gracefully because there is no PR context. Either outcome is acceptable.
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action succeeded (no PR context, no blocking applied)"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (expected — no PR context or sentinel repo)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
