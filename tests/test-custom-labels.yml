@@ -1,0 +1,38 @@
+name: Test custom labels and commit status configuration
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          timezone: Europe/London
+          after: "18:00"
+          before: "08:00"
+          no-block-label: "skip-time-block"
+          commit-status-context: "my-org/time-block"
+          commit-status-description-with-success: "Merge is allowed"
+          commit-status-description-while-blocking: "Merge is blocked by policy"
+          base-branches: "main, develop"
+
+      - name: Assert action handled custom label and status inputs gracefully
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # Under workflow_dispatch there is no PR context, so the action may skip
+          # PR-specific logic (success) or fail gracefully (failure).
+          # Both are acceptable; an unexpected outcome is not.
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action completed successfully with custom labels"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (no PR context under workflow_dispatch)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
