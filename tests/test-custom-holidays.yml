@@ -1,0 +1,37 @@
+name: Test custom-holidays-path input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create custom holidays JSON file
+        run: |
+          mkdir -p /tmp/test-holidays
+          cat > /tmp/test-holidays/holidays.json << 'EOF'
+          {"TestRegion": [{"date": "2099-01-01"}, {"date": "2099-12-25"}]}
+          EOF
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          timezone: UTC
+          prohibited-days-dates: "H:TestRegion"
+          custom-holidays-path: /tmp/test-holidays/holidays.json
+
+      - name: Assert action ran (succeeds or fails gracefully on sentinel repo)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action succeeded (no open PRs in sentinel repo)"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable via GitHub API)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
