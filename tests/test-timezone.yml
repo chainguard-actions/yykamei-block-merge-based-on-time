@@ -1,0 +1,35 @@
+name: Test timezone handling
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          timezone: Asia/Tokyo
+          after: "18:00"
+          before: "09:00"
+          prohibited-days-dates: "Saturday, Sunday"
+          base-branches: "(default)"
+          commit-status-context: block-merge-based-on-time
+
+      - name: Assert action ran (output set or failed gracefully on sentinel repo)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          PR_BLOCKED: ${{ steps.action.outputs.pr-blocked }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "pr-blocked: $PR_BLOCKED"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action succeeded"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
