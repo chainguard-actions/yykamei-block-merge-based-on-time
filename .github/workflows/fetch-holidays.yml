@@ -1,0 +1,43 @@
+name: Fetch holidays
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "5 11 * * *"
+permissions: {}
+jobs:
+  fetch-holidays:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        id: app-token
+        with:
+          client-id: ${{ vars.APP_CLIENT_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          check-latest: true
+          cache: npm
+      - run: npm ci
+      - run: npm run fetch-holidays
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+      - uses: yykamei/actions-git-push@c9bcec4304fde1cf89d4abdf23280713e66c034d # main
+        with:
+          commit-message: Update Holidays
+          branch: update-holidays
+      - uses: yykamei/actions-gh-pr-create@4a22702016fa51a895a4a483a8a95bb392880240 # main
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          branch: update-holidays
+          title: Update Holidays
+          label: enhancement
+          body: |
+            *This pull request was automatically created to make src/holidays.json the latest*.
+
+            Check the files changes and merge if the changes make sense.
