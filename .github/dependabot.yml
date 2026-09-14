@@ -1,0 +1,27 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    groups:
+      eslint:
+        patterns:
+          - "*eslint*"
+      types:
+        patterns:
+          - "@types/*"
+    schedule:
+      interval: weekly
+      day: "saturday"
+      time: "20:30"
+      timezone: Asia/Tokyo
+    open-pull-requests-limit: 15
+    cooldown:
+      default-days: 5
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: daily
+      time: "08:30"
+      timezone: Asia/Tokyo
+    cooldown:
+      default-days: 5
