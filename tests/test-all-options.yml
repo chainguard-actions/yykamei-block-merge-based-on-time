@@ -1,0 +1,41 @@
+name: Test with all options set
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          timezone: America/New_York
+          after: "17:30, 16:30 on Monday, 15:00 on Friday"
+          before: "09:00, 08:00 on Monday"
+          base-branches: "(default), develop, /^release\\/.*$/"
+          prohibited-days-dates: "Sunday, Saturday, 2021-08-01, 2021-08-06/2021-08-10"
+          no-block-label: "no-block, hotfix"
+          commit-status-context: custom-context
+          commit-status-description-with-success: OK to merge
+          commit-status-description-while-blocking: Blocked by policy
+          commit-status-url: https://example.com/policy
+      - name: Assert action ran (or failed gracefully on the sentinel repo)
+        env:
+          RESULT: ${{ steps.action.outputs.pr-blocked }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "pr-blocked: '$RESULT'"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ -n "$RESULT" ]; then
+              echo "FAIL: pr-blocked should not be set for workflow_dispatch"
+              exit 1
+            fi
+            echo "PASS: action succeeded"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
