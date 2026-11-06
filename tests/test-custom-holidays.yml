@@ -1,0 +1,82 @@
+name: Test custom holidays file
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          timezone: UTC
+          prohibited-days-dates: "H:MyCompany, BH:MyCompany"
+          custom-holidays-path: ${{ github.workspace }}/tests/fixtures/custom-holidays-single-dates.json
+      - name: Assert action ran (succeeded, or failed gracefully on the sentinel repo)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          RESULT: ${{ steps.action.outputs.pr-blocked }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "pr-blocked: $RESULT"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ -n "$RESULT" ]; then
+              echo "FAIL: pr-blocked should not be set for workflow_dispatch"
+              exit 1
+            fi
+            echo "PASS: action succeeded"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
+      - name: Assert custom holidays file is accepted
+        run: |
+          set +e
+          OUT="$(env -i PATH="$PATH" HOME="$HOME" \
+            GITHUB_EVENT_NAME=push \
+            INPUT_TOKEN=dummy \
+            INPUT_TIMEZONE=UTC \
+            INPUT_AFTER=00:00 INPUT_BEFORE=00:00 \
+            'INPUT_PROHIBITED-DAYS-DATES=H:MyCompany, BH:MyCompany' \
+            "INPUT_CUSTOM-HOLIDAYS-PATH=$GITHUB_WORKSPACE/tests/fixtures/custom-holidays-single-dates.json" \
+            node "$GITHUB_WORKSPACE/dist/index.js" 2>&1)"
+          RC=$?
+          set -e
+          echo "rc: $RC"
+          echo "$OUT"
+          if [ "$RC" -ne 0 ]; then
+            echo "FAIL: expected exit 0 with a valid custom holidays file"
+            exit 1
+          fi
+          if ! echo "$OUT" | grep -q 'does not support the event "push"'; then
+            echo "FAIL: expected unsupported event warning"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert region missing from custom file is rejected
+        run: |
+          set +e
+          OUT="$(env -i PATH="$PATH" HOME="$HOME" \
+            GITHUB_EVENT_NAME=push \
+            INPUT_TOKEN=dummy \
+            INPUT_TIMEZONE=UTC \
+            INPUT_AFTER=00:00 INPUT_BEFORE=00:00 \
+            'INPUT_PROHIBITED-DAYS-DATES=H:Japan' \
+            "INPUT_CUSTOM-HOLIDAYS-PATH=$GITHUB_WORKSPACE/tests/fixtures/custom-holidays-single-dates.json" \
+            node "$GITHUB_WORKSPACE/dist/index.js" 2>&1)"
+          RC=$?
+          set -e
+          echo "rc: $RC"
+          echo "$OUT"
+          if [ "$RC" -eq 0 ]; then
+            echo "FAIL: expected non-zero exit"
+            exit 1
+          fi
+          if ! echo "$OUT" | grep -q 'does not exist in custom holidays file'; then
+            echo "FAIL: expected missing-region error"
+            exit 1
+          fi
+          echo "PASS"
