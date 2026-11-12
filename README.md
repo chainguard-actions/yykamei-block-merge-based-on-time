@@ -49,6 +49,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | v5.0.56 | [`v5.0.56`](https://github.com/chainguard-actions/yykamei-block-merge-based-on-time/tree/v5.0.56) | [`6f231d0`](https://github.com/yykamei/block-merge-based-on-time/commit/6f231d05774e9f82943a376e46ae2aa9e2704616) | [`HARDENING.md`](https://github.com/chainguard-actions/yykamei-block-merge-based-on-time/blob/v5.0.56/HARDENING.md) |
 | v5.0.57 | [`v5.0.57`](https://github.com/chainguard-actions/yykamei-block-merge-based-on-time/tree/v5.0.57) | [`ef89f4f`](https://github.com/yykamei/block-merge-based-on-time/commit/ef89f4f878898c0cf2e8bf25828d05af8b8eba9e) | [`HARDENING.md`](https://github.com/chainguard-actions/yykamei-block-merge-based-on-time/blob/v5.0.57/HARDENING.md) |
 | v5.0.58 | [`v5.0.58`](https://github.com/chainguard-actions/yykamei-block-merge-based-on-time/tree/v5.0.58) | [`a59087c`](https://github.com/yykamei/block-merge-based-on-time/commit/a59087c0b0f575d781db6fe9e100136375c84138) | [`HARDENING.md`](https://github.com/chainguard-actions/yykamei-block-merge-based-on-time/blob/v5.0.58/HARDENING.md) |
+| v5.0.59 | [`v5.0.59`](https://github.com/chainguard-actions/yykamei-block-merge-based-on-time/tree/v5.0.59) | [`418f12b`](https://github.com/yykamei/block-merge-based-on-time/commit/418f12b406dd34cb5991100bc20f914fb13edc3d) | [`HARDENING.md`](https://github.com/chainguard-actions/yykamei-block-merge-based-on-time/blob/v5.0.59/HARDENING.md) |
 
 ## Privacy
 
