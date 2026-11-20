@@ -1,6 +1,16 @@
 {
   "owner": "yykamei",
   "repo": "block-merge-based-on-time",
-  "version": "",
-  "url": "https://github.com/yykamei/block-merge-based-on-time"
+  "version": "v5.0.62",
+  "commit_sha": "1e2ee9b8025d0773a4103c1de0ba6f8b1eea1b03",
+  "url": "https://github.com/yykamei/block-merge-based-on-time",
+  "policy_sha": "374911c4be584df24e6da57af2d990570ef0f859",
+  "test_policy_sha": "843adf9e4b8f85d0c08b27b9d0b09dd094b54702",
+  "test_agent_version": "2",
+  "harden_agent_version": "2",
+  "dist_artifact": {
+    "gcs_uri": "gs://patch-actions-node-artifacts/dist-artifacts/yykamei/block-merge-based-on-time/v5.0.62/sha256-fbc57b3fdbe204fdd1271c167f28385b7b22476fcb45c107661d92a4185e8ebc.tar.gz",
+    "sha256": "fbc57b3fdbe204fdd1271c167f28385b7b22476fcb45c107661d92a4185e8ebc",
+    "size_bytes": 403905
+  }
 }
